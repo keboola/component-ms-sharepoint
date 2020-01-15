@@ -22,6 +22,7 @@ KEY_LISTS = 'lists'
 KEY_LIST_SITE_REL_PATH = 'site_url_rel_path'
 KEY_LIST_NAME = 'list_name'
 KEY_LIST_INCLUDE_ADD_COLS = 'include_additional_cols'
+KEY_LIST_LOAD_SETUP = 'load_setup'
 KEY_LIST_LOAD_MODE = 'load_mode_incremental'
 KEY_LIST_RESULT_NAME = 'result_table_name'
 
@@ -49,8 +50,13 @@ class Component(KBCEnvHandler):
             self.validate_config(MANDATORY_PARS)
             for l in self.cfg_params[KEY_LISTS]:
                 self.validate_parameters(l,
-                                         [KEY_LIST_SITE_REL_PATH, KEY_LIST_NAME, KEY_LIST_LOAD_MODE,
-                                          KEY_LIST_RESULT_NAME], 'list')
+                                         [KEY_LIST_SITE_REL_PATH, KEY_LIST_NAME, KEY_LIST_LOAD_SETUP], 'list')
+                self.validate_parameters(l[KEY_LIST_LOAD_SETUP],
+                                         [KEY_LIST_LOAD_MODE, KEY_LIST_RESULT_NAME], 'list')
+                # normalize config - structure used for UI
+                l[KEY_LIST_LOAD_MODE] = l[KEY_LIST_LOAD_SETUP][KEY_LIST_LOAD_MODE]
+                l[KEY_LIST_RESULT_NAME] = l[KEY_LIST_LOAD_SETUP][KEY_LIST_RESULT_NAME]
+
         except ValueError as e:
             logging.exception(e)
             exit(1)
@@ -76,16 +82,16 @@ class Component(KBCEnvHandler):
                         f'No site with given url: '
                         f'{"/".join([params[KEY_BASE_HOST], lst_par[KEY_LIST_SITE_REL_PATH]])} found.')
 
-                list = self.client.get_site_list_by_name(site['id'], lst_par[KEY_LIST_NAME])
-                if not list:
+                sh_list = self.client.get_site_list_by_name(site['id'], lst_par[KEY_LIST_NAME])
+                if not sh_list:
                     raise RuntimeError(
                         f'No list named "{lst_par[KEY_LIST_NAME]}" found on site : '
                         f'{"/".join([params[KEY_BASE_HOST], lst_par[KEY_LIST_SITE_REL_PATH]])} .')
 
-                list_columns = self.client.get_site_list_columns(site['id'], list['id'],
+                list_columns = self.client.get_site_list_columns(site['id'], sh_list['id'],
                                                                  include_system=lst_par.get(KEY_LIST_INCLUDE_ADD_COLS,
                                                                                             False))
-                data_results = self._collect_and_write_list(site['id'], list, list_columns, lst_par)
+                data_results = self._collect_and_write_list(site['id'], sh_list, list_columns, lst_par)
                 all_results.extend(data_results)
             except BaseError as ex:
                 logging.exception(ex)
@@ -101,7 +107,8 @@ class Component(KBCEnvHandler):
         for fl in self.client.get_site_list_fields(site_id, sh_lst['id']):
             data_wr.write_all(fl, user_values={result.LIST_ID: sh_lst['id']})
         # write metadata
-        self.list_metadata_wr.write(sh_lst, user_values={result.SITE_ID: site_id})
+        self.list_metadata_wr.write(sh_lst, user_values={result.SITE_ID: site_id,
+                                                         result.RES_TABLE_NAME: lst_par[KEY_LIST_RESULT_NAME]})
 
         data_wr.close()
         return data_wr.collect_results()

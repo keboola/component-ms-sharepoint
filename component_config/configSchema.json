@@ -2,99 +2,86 @@
   "type": "object",
   "title": "extractor configuration",
   "required": [
-    "project_id",
-    "#api_token",
-    "period_from",
-    "period_to",
-    "relative_period",
-    "metrics",
-    "backfill_mode"
+    "base_host_name",
+    "lists"
   ],
   "properties": {
-    "project_id": {
+    "base_host_name": {
       "type": "string",
-      "title": "Project ID",
+      "title": "Sharepoint host base name",
+      "description": "e.g. my-tenant.sharepoint.com",
       "propertyOrder": 100
     },
-    "#api_token": {
-      "type": "string",
-      "title": "API token",
-      "format": "password",
-      "propertyOrder": 200
-    },
-    "period_from": {
-      "type": "string",
-      "format": "date",
-      "title": "Period from date [including]",
-      "propertyOrder": 300
-    },
-    "period_to": {
-      "type": "string",
-      "format": "date",
-      "title": "Period to date [excluding]",
-      "propertyOrder": 400
-    },
-    "relative_period": {
-      "type": "string",
-      "title": "Relative period from now (utc)",
-      "description": "Relative period in format: '5 hours ago', 'yesterday','3 days ago', '4 months ago', '2 years ago', 'today'. Overrides `from` and `to` parameters.",
-      "propertyOrder": 450
-    },
-    "backfill_mode": {
-      "type": "number",
-      "title": "Backfill mode",
-      "description": "If backfill mode is enabled, each consecutive run of the component will continue from the end of the last run period, until current date is reached. The From and To date parameters are used to define Start date of the back-fill and also relative window of each run.",
-      "propertyOrder": 455,
-      "enum": [
-        0,
-        1
-      ],
-      "default": 0,
-      "options": {
-        "enum_titles": [
-          "No",
-          "Yes"
-        ]
-      }
-    },
-    "metrics": {
+    "lists": {
       "type": "array",
-      "title": "Example array of group of string objects",
-      "description": "Group of string objects alligned in grid",
+      "title": "Sharepoint lists",
+      "description": "Sharepoint Lists to download.",
       "items": {
         "format": "grid",
         "type": "object",
-        "title": "Items of array, multiple objects",
+        "title": "List",
         "required": [
-          "metric",
-          "modificator"
+          "site_url_rel_path",
+          "list_name",
+          "include_additional_cols",
+          "load_setup"
         ],
         "properties": {
-          "metric": {
-            "enum": [
-              "NoVt",
-              "TotTm",
-              "NoPV"
-            ],
+          "site_url_rel_path": {
             "type": "string",
-            "default": "NoPV",
-            "title": "Metric",
-            "description": "First object, enum of strings",
+            "default": "/sites/root",
+            "title": "Site relative URL path",
+            "description": "Relative path of the Sharepoint site on your Sharepoint server. E.g. /sites/MyTeamSite. If left empty, a root site is used.",
             "propertyOrder": 1000
           },
-          "modificator": {
-            "enum": [
-              "none",
-              "change",
-              "share",
-              "share_in_total",
-              "change_in_percentage"
-            ],
+          "list_name": {
             "type": "string",
-            "title": "Mdificator",
-            "description": "Second object",
-            "default": "daily",
+            "title": "List name",
+            "description": "Name of the Sharepoint List. Exactly as displayed in the UI.",
             "propertyOrder": 2000
+          },
+          "include_additional_cols": {
+            "type": "boolean",
+            "title": "Include additional system columns",
+            "description": "Sharepoint lists contain also metadata column invisible in the default UI view. Check this to include them in the export.",
+            "propertyOrder": 3000,
+            "format": "checkbox"
+          },
+          "load_setup": {
+            "type": "object",
+            "title": "Storage load setup",
+            "format": "grid",
+            "propertyOrder": 4000,
+            "required": [
+              "load_mode_incremental",
+              "result_table_name"
+            ],
+            "properties": {
+              "load_mode_incremental": {
+                "type": "number",
+                "enum": [
+                  0,
+                  1
+                ],
+                "options": {
+                  "enum_titles": [
+                    "Full Load",
+                    "Incremental Update"
+                  ],
+                  "grid_columns": 6
+                },
+                "default": 1,
+                "title": "Load type",
+                "description": "If set to Incremental update, the result tables will be updated based on primary key. Full load overwrites the destination table each time. NOTE: If you wish to remove deleted records, this needs to be set to Full load and the Period from attribute empty.",
+                "propertyOrder": 4000
+              },
+              "result_table_name": {
+                "type": "string",
+                "title": "Result table name",
+                "description": "Name of the result table in the storage.",
+                "propertyOrder": 5000
+              }
+            }
           }
         }
       }

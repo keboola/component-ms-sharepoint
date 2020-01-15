@@ -1,2 +1,2 @@
-Testing functional sample extractor for purposes of the python component template. 
-Implements partial Hubspot extractor using the public sandbox token.
+Download `Lists` and `List Items` from MS Sharepoint. If you're looking for fetching documents and files from the 
+Sharepoint platform, use the [One Drive extractor](https://components.keboola.com/components/jakub-bartel.ex-onedrive).
