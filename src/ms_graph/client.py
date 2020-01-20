@@ -97,6 +97,7 @@ class Client(HttpClientBase):
             columns = [c for c in columns if
                        c['name'] not in self.SYSTEM_LIST_COLUMNS and not c['name'].startswith('_')]
 
+        self._dedupe_header(columns)
         return columns
 
     def get_site_list_fields(self, site_id, list_id):
@@ -159,3 +160,16 @@ class Client(HttpClientBase):
             raise exceptions.BandwidthLimitExceeded(f'Calling endpoint {endpoint} failed', r)
         else:
             raise exceptions.UnknownError(f'Calling endpoint {endpoint} failed', r)
+
+    def _dedupe_header(self, columns):
+        col_keys = dict()
+        dup_headers = set()
+        for col in columns:
+            if col['displayName'] in col_keys:
+                dup_headers.add(col['displayName'])
+                col['displayName'] = col['displayName'] + '_' + col['name']
+            else:
+                col_keys[col['displayName']] = col
+        # update first value names as well
+        for c in dup_headers:
+            col_keys[c]['displayName'] = col_keys[c]['displayName'] + '_' + col_keys[c]['name']
