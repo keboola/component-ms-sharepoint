@@ -31,7 +31,7 @@ KEY_DEBUG = 'debug'
 MANDATORY_PARS = [KEY_LISTS]
 MANDATORY_IMAGE_PARS = []
 
-APP_VERSION = '0.0.1'
+OAUTH_APP_SCOPE = 'offline_access Files.Read Sites.Read.All'
 
 
 class Component(KBCEnvHandler):
@@ -43,7 +43,6 @@ class Component(KBCEnvHandler):
             debug = True
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
-        logging.info('Running version %s', APP_VERSION)
         logging.info('Loading configuration...')
 
         try:
@@ -62,10 +61,12 @@ class Component(KBCEnvHandler):
             exit(1)
 
         authorization_data = json.loads(self.get_authorization().get('#data'))
-        token = authorization_data.get('access_token')
+        token = authorization_data.get('refresh_token')
         if not token:
             raise Exception('Missing access token in authorization data!')
-        self.client = Client(token)
+
+        self.client = Client(refresh_token=token, client_id=self.get_authorization()['appKey'],
+                             client_secret=self.get_authorization()['#appSecret'], scope=OAUTH_APP_SCOPE)
         self.list_metadata_wr = ListResultWriter(self.tables_out_path)
 
     def run(self):
@@ -76,6 +77,10 @@ class Component(KBCEnvHandler):
         all_results = []
         for lst_par in params[KEY_LISTS]:
             try:
+                logging.info(
+                    f'Downloading list "{lst_par[KEY_LIST_NAME]}" '
+                    f'from the site: {params[KEY_BASE_HOST] + lst_par[KEY_LIST_SITE_REL_PATH]}')
+                logging.info('Validating site and list references...')
                 site = self.client.get_site_by_relative_url(params[KEY_BASE_HOST], lst_par[KEY_LIST_SITE_REL_PATH])
                 if not site.get('id'):
                     raise RuntimeError(
@@ -88,19 +93,23 @@ class Component(KBCEnvHandler):
                         f'No list named "{lst_par[KEY_LIST_NAME]}" found on site : '
                         f'{"/".join([params[KEY_BASE_HOST], lst_par[KEY_LIST_SITE_REL_PATH]])} .')
 
+                logging.info('Getting list details...')
                 list_columns = self.client.get_site_list_columns(site['id'], sh_list['id'],
                                                                  include_system=lst_par.get(KEY_LIST_INCLUDE_ADD_COLS,
                                                                                             False))
+                logging.info('Collecting list data...')
                 data_results = self._collect_and_write_list(site['id'], sh_list, list_columns, lst_par)
                 all_results.extend(data_results)
             except BaseError as ex:
                 logging.exception(ex)
                 exit(1)
 
+        logging.info('Writing results')
         self.list_metadata_wr.close()
         all_results.extend(self.list_metadata_wr.collect_results())
 
         self.create_manifests(results=all_results)
+        logging.info('Extraction finished!')
 
     def _collect_and_write_list(self, site_id, sh_lst, list_columns, lst_par):
         data_wr = ListDataResultWriter(self.tables_out_path, list_columns, lst_par[KEY_LIST_RESULT_NAME])

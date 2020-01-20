@@ -1,9 +1,13 @@
+import requests
 from kbc.client_base import HttpClientBase
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from ms_graph import exceptions
 
 
 class Client(HttpClientBase):
+    OAUTH_LOGIN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
     MAX_RETRIES = 10
     BASE_URL = 'https://graph.microsoft.com/v1.0/'
     SYSTEM_LIST_COLUMNS = ["ComplianceAssetId",
@@ -22,11 +26,59 @@ class Client(HttpClientBase):
                            "AppAuthor",
                            "AppEditor"]
 
-    def __init__(self, access_token):
+    def __init__(self, refresh_token, client_secret, client_id, scope):
         HttpClientBase.__init__(self, base_url=self.BASE_URL, max_retries=self.MAX_RETRIES, backoff_factor=0.3,
-                                status_forcelist=(429, 503, 500, 502, 504),
-                                default_http_header={"Authorization": 'Bearer ' + access_token,
-                                                     "Content-Type": "application/json"})
+                                status_forcelist=(429, 503, 500, 502, 504))
+        # refresh always on init
+        self.__refresh_token = refresh_token
+        self.__clien_secret = client_secret
+        self.__client_id = client_id
+        self.__scope = scope
+        access_token = self.refresh_token()
+
+        # set auth header
+        self._auth_header = {"Authorization": 'Bearer ' + access_token,
+                             "Content-Type": "application/json"}
+
+    def __response_hook(self, res, *args, **kwargs):
+        # refresh token if expired
+        if res.status_code == 401:
+            token = self.refresh_token()
+            # update auth header
+            self._auth_header = {"Authorization": 'Bearer ' + token,
+                                 "Content-Type": "application/json"}
+            # reset header
+            res.request.headers['Authorization'] = 'Bearer ' + token
+            s = requests.Session()
+            # retry request
+            return self.requests_retry_session(session=s).send(res.request)
+
+    def refresh_token(self):
+        data = {"client_id": self.__client_id,
+                "client_secret": self.__clien_secret,
+                "refresh_token": self.__refresh_token,
+                "grant_type": "refresh_token",
+                "scope": self.__scope}
+        r = requests.post(url=self.OAUTH_LOGIN_URL, data=data)
+        parsed = self._parse_response(r, 'login')
+        return parsed['access_token']
+
+    def requests_retry_session(self, session=None):
+        session = session or requests.Session()
+        retry = Retry(
+            total=self.max_retries,
+            read=self.max_retries,
+            connect=self.max_retries,
+            backoff_factor=self.backoff_factor,
+            status_forcelist=self.status_forcelist,
+            method_whitelist=('GET', 'POST', 'PATCH', 'UPDATE')
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        # append response hook
+        session.hooks['response'].append(self.__response_hook)
+        return session
 
     def _get_paged_result_pages(self, endpoint, parameters):
 
@@ -97,6 +149,7 @@ class Client(HttpClientBase):
             columns = [c for c in columns if
                        c['name'] not in self.SYSTEM_LIST_COLUMNS and not c['name'].startswith('_')]
 
+        self._dedupe_header(columns)
         return columns
 
     def get_site_list_fields(self, site_id, list_id):
@@ -159,3 +212,16 @@ class Client(HttpClientBase):
             raise exceptions.BandwidthLimitExceeded(f'Calling endpoint {endpoint} failed', r)
         else:
             raise exceptions.UnknownError(f'Calling endpoint {endpoint} failed', r)
+
+    def _dedupe_header(self, columns):
+        col_keys = dict()
+        dup_headers = set()
+        for col in columns:
+            if col['displayName'] in col_keys:
+                dup_headers.add(col['displayName'])
+                col['displayName'] = col['displayName'] + '_' + col['name']
+            else:
+                col_keys[col['displayName']] = col
+        # update first value names as well
+        for c in dup_headers:
+            col_keys[c]['displayName'] = col_keys[c]['displayName'] + '_' + col_keys[c]['name']
