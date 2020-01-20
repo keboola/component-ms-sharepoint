@@ -31,8 +31,6 @@ KEY_DEBUG = 'debug'
 MANDATORY_PARS = [KEY_LISTS]
 MANDATORY_IMAGE_PARS = []
 
-APP_VERSION = '0.0.1'
-
 OAUTH_APP_SCOPE = 'offline_access Files.Read Sites.Read.All'
 
 
@@ -45,7 +43,6 @@ class Component(KBCEnvHandler):
             debug = True
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
-        logging.info('Running version %s', APP_VERSION)
         logging.info('Loading configuration...')
 
         try:
@@ -80,6 +77,9 @@ class Component(KBCEnvHandler):
         all_results = []
         for lst_par in params[KEY_LISTS]:
             try:
+                logging.info(
+                    f'Downloading list "{lst_par[KEY_LIST_NAME]}" '
+                    f'from the site: {params[KEY_BASE_HOST] + lst_par[KEY_LIST_SITE_REL_PATH]}')
                 logging.info('Validating site and list references...')
                 site = self.client.get_site_by_relative_url(params[KEY_BASE_HOST], lst_par[KEY_LIST_SITE_REL_PATH])
                 if not site.get('id'):
