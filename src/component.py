@@ -76,6 +76,7 @@ class Component(KBCEnvHandler):
         all_results = []
         for lst_par in params[KEY_LISTS]:
             try:
+                logging.info('Validating site and list references...')
                 site = self.client.get_site_by_relative_url(params[KEY_BASE_HOST], lst_par[KEY_LIST_SITE_REL_PATH])
                 if not site.get('id'):
                     raise RuntimeError(
@@ -88,20 +89,23 @@ class Component(KBCEnvHandler):
                         f'No list named "{lst_par[KEY_LIST_NAME]}" found on site : '
                         f'{"/".join([params[KEY_BASE_HOST], lst_par[KEY_LIST_SITE_REL_PATH]])} .')
 
+                logging.info('Getting list details...')
                 list_columns = self.client.get_site_list_columns(site['id'], sh_list['id'],
                                                                  include_system=lst_par.get(KEY_LIST_INCLUDE_ADD_COLS,
                                                                                             False))
+                logging.info('Collecting list data...')
                 data_results = self._collect_and_write_list(site['id'], sh_list, list_columns, lst_par)
                 all_results.extend(data_results)
             except BaseError as ex:
                 logging.exception(ex)
                 exit(1)
-
+        logging.info('Writing results')
         self.list_metadata_wr.close()
         all_results.extend(self.list_metadata_wr.collect_results())
 
         self.create_manifests(results=all_results)
-
+        logging.info('Extraction finished!')
+        
     def _collect_and_write_list(self, site_id, sh_lst, list_columns, lst_par):
         data_wr = ListDataResultWriter(self.tables_out_path, list_columns, lst_par[KEY_LIST_RESULT_NAME])
         for fl in self.client.get_site_list_fields(site_id, sh_lst['id']):
