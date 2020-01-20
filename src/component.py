@@ -33,6 +33,8 @@ MANDATORY_IMAGE_PARS = []
 
 APP_VERSION = '0.0.1'
 
+OAUTH_APP_SCOPE = 'offline_access Files.Read Sites.Read.All'
+
 
 class Component(KBCEnvHandler):
 
@@ -62,10 +64,12 @@ class Component(KBCEnvHandler):
             exit(1)
 
         authorization_data = json.loads(self.get_authorization().get('#data'))
-        token = authorization_data.get('access_token')
+        token = authorization_data.get('refresh_token')
         if not token:
             raise Exception('Missing access token in authorization data!')
-        self.client = Client(token)
+
+        self.client = Client(refresh_token=token, client_id=self.get_authorization()['appKey'],
+                             client_secret=self.get_authorization()['#appSecret'], scope=OAUTH_APP_SCOPE)
         self.list_metadata_wr = ListResultWriter(self.tables_out_path)
 
     def run(self):
