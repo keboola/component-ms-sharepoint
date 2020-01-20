@@ -99,13 +99,14 @@ class Component(KBCEnvHandler):
             except BaseError as ex:
                 logging.exception(ex)
                 exit(1)
+
         logging.info('Writing results')
         self.list_metadata_wr.close()
         all_results.extend(self.list_metadata_wr.collect_results())
 
         self.create_manifests(results=all_results)
         logging.info('Extraction finished!')
-        
+
     def _collect_and_write_list(self, site_id, sh_lst, list_columns, lst_par):
         data_wr = ListDataResultWriter(self.tables_out_path, list_columns, lst_par[KEY_LIST_RESULT_NAME])
         for fl in self.client.get_site_list_fields(site_id, sh_lst['id']):
