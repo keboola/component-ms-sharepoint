@@ -40,7 +40,7 @@ and an `api name` that is underlying unique identifier of a column and does not 
 allows you to choose which of the names you wish to use in the result table. 
 
 **NOTE** that when using the `display name` duplicate column names will be automatically deduplicated. 
-Also some of the system columns are prefixed with `_`, these underscores will be dropped since Storage columns cannot
+Also some of the system columns are prefixed with `_`, these underscores will be dropped since the *Storage* columns cannot
  start with underscore signs.
 
 ## Storage load setup
