@@ -1,0 +1,1 @@
+Additional documentation is [available](https://bitbucket.org/kds_consulting_team/kds-team.ex-ms-sharepoint/src/master/README.md).
