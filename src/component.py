@@ -22,6 +22,7 @@ KEY_LISTS = 'lists'
 KEY_LIST_SITE_REL_PATH = 'site_url_rel_path'
 KEY_LIST_NAME = 'list_name'
 KEY_LIST_INCLUDE_ADD_COLS = 'include_additional_cols'
+KEY_USE_DISPLAY_NAMES = 'use_display_names'
 KEY_LIST_LOAD_SETUP = 'load_setup'
 KEY_LIST_LOAD_MODE = 'load_mode_incremental'
 KEY_LIST_RESULT_NAME = 'result_table_name'
@@ -96,7 +97,9 @@ class Component(KBCEnvHandler):
                 logging.info('Getting list details...')
                 list_columns = self.client.get_site_list_columns(site['id'], sh_list['id'],
                                                                  include_system=lst_par.get(KEY_LIST_INCLUDE_ADD_COLS,
-                                                                                            False))
+                                                                                            False),
+                                                                 use_display_colnames=lst_par.get(KEY_USE_DISPLAY_NAMES,
+                                                                                                  True))
                 logging.info('Collecting list data...')
                 data_results = self._collect_and_write_list(site['id'], sh_list, list_columns, lst_par)
                 all_results.extend(data_results)

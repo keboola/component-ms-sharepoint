@@ -24,6 +24,7 @@
           "site_url_rel_path",
           "list_name",
           "include_additional_cols",
+          "use_display_names",
           "load_setup"
         ],
         "properties": {
@@ -45,6 +46,14 @@
             "title": "Include additional system columns",
             "description": "Sharepoint lists contain also metadata column invisible in the default UI view. Check this to include them in the export.",
             "propertyOrder": 3000,
+            "format": "checkbox"
+          },
+          "use_display_names": {
+            "type": "boolean",
+            "title": "Use column display names",
+            "description": "If set to false, underlying API column names will be used in the result table.",
+            "propertyOrder": 3100,
+            "default": true,
             "format": "checkbox"
           },
           "load_setup": {
