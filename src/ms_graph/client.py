@@ -2,6 +2,7 @@ import requests
 from kbc.client_base import HttpClientBase
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+import logging
 
 from ms_graph import exceptions
 
@@ -127,7 +128,7 @@ class Client(HttpClientBase):
 
         return res_list[0] if res_list else None
 
-    def get_site_list_columns(self, site_id, list_id, include_system=False,
+    def get_site_list_columns(self, site_id, list_id, include_system=False, use_display_colnames=True,
                               expand_par='columns(select=name, description, displayName)'):
         """
         Gets array of columns available in the specified list.
@@ -135,6 +136,7 @@ class Client(HttpClientBase):
         :param site_id:
         :param list_id:
         :param include_system:
+        :param use_display_colnames:
         :param expand_par:
         :return:
         """
@@ -149,7 +151,13 @@ class Client(HttpClientBase):
             columns = [c for c in columns if
                        c['name'] not in self.SYSTEM_LIST_COLUMNS and not c['name'].startswith('_')]
 
-        self._dedupe_header(columns)
+        if use_display_colnames:
+            logging.info('Using display column names.')
+            self._dedupe_header(columns)
+        else:
+            logging.info('Using unique API column names.')
+            # use api names as display - already unique
+            self._name_as_display_names(columns)
         return columns
 
     def get_site_list_fields(self, site_id, list_id):
@@ -225,3 +233,7 @@ class Client(HttpClientBase):
         # update first value names as well
         for c in dup_headers:
             col_keys[c]['displayName'] = col_keys[c]['displayName'] + '_' + col_keys[c]['name']
+
+    def _name_as_display_names(self, columns):
+        for col in columns:
+            col['displayName'] = col['name']
