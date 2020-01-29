@@ -29,7 +29,7 @@ KEY_LIST_RESULT_NAME = 'result_table_name'
 
 # #### Keep for debug
 KEY_DEBUG = 'debug'
-MANDATORY_PARS = [KEY_LISTS]
+MANDATORY_PARS = [KEY_BASE_HOST, KEY_LISTS]
 MANDATORY_IMAGE_PARS = []
 
 OAUTH_APP_SCOPE = 'offline_access Files.Read Sites.Read.All'
