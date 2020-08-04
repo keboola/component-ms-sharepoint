@@ -1,8 +1,9 @@
+import logging
+
 import requests
 from kbc.client_base import HttpClientBase
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-import logging
 
 from ms_graph import exceptions
 
@@ -129,7 +130,7 @@ class Client(HttpClientBase):
         return res_list[0] if res_list else None
 
     def get_site_list_columns(self, site_id, list_id, include_system=False, use_display_colnames=True,
-                              expand_par='columns(select=name, description, displayName)'):
+                              expand_par='columns(select=name, description, displayName, personOrGroup)'):
         """
         Gets array of columns available in the specified list.
 
@@ -150,6 +151,11 @@ class Client(HttpClientBase):
         if not include_system:
             columns = [c for c in columns if
                        c['name'] not in self.SYSTEM_LIST_COLUMNS and not c['name'].startswith('_')]
+
+        # convert Person type to lookupIds
+        for col in columns:
+            if col.get('personOrGroup'):
+                col['name'] = col['name'] + 'LookupId'
 
         if use_display_colnames:
             logging.info('Using display column names.')
