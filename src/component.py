@@ -48,14 +48,14 @@ class Component(KBCEnvHandler):
 
         try:
             self.validate_config(MANDATORY_PARS)
-            for l in self.cfg_params[KEY_LISTS]:
-                self.validate_parameters(l,
+            for ls in self.cfg_params[KEY_LISTS]:
+                self.validate_parameters(ls,
                                          [KEY_LIST_SITE_REL_PATH, KEY_LIST_NAME, KEY_LIST_LOAD_SETUP], 'list')
-                self.validate_parameters(l[KEY_LIST_LOAD_SETUP],
+                self.validate_parameters(ls[KEY_LIST_LOAD_SETUP],
                                          [KEY_LIST_LOAD_MODE, KEY_LIST_RESULT_NAME], 'list')
                 # normalize config - structure used for UI
-                l[KEY_LIST_LOAD_MODE] = l[KEY_LIST_LOAD_SETUP][KEY_LIST_LOAD_MODE]
-                l[KEY_LIST_RESULT_NAME] = l[KEY_LIST_LOAD_SETUP][KEY_LIST_RESULT_NAME]
+                ls[KEY_LIST_LOAD_MODE] = ls[KEY_LIST_LOAD_SETUP][KEY_LIST_LOAD_MODE]
+                ls[KEY_LIST_RESULT_NAME] = ls[KEY_LIST_LOAD_SETUP][KEY_LIST_RESULT_NAME]
 
         except ValueError as e:
             logging.exception(e)
