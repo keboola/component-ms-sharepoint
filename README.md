@@ -6,6 +6,21 @@ Download SharePoint lists directly to Keboola Storage.
   
 [TOC]
 
+# Functionality Note
+
+## PersonOrGroup columns
+
+Person or Group columns contain a user ID values. To retrieve additional information it is necessary 
+to download the **Users** list, which is default for each site.
+
+To retrieve a Users list:
+
+- Navigate to https://`{my-tenant}`.sharepoint.com/`{site-relative-url-path}`/_catalogs/users/detail.aspx
+- Copy the name of the list - in English localisation it is `User Information List`
+- Set this list in list definition configuration
+
+
+
 # Configuration
  
 ## Host base name
