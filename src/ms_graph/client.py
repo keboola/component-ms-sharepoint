@@ -110,10 +110,11 @@ class Client(HttpClientBase):
         resp = self._parse_response(self.get_raw(url), 'sites')
         return resp
 
-    def get_site_lists(self, site_id):
+    def get_site_lists(self, site_id, filter=''):
         endpoint = f'/sites/{site_id}/lists'
+
         lists = []
-        for ls in self._get_paged_result_pages(endpoint, {}):
+        for ls in self._get_paged_result_pages(endpoint, {"$filter": filter}):
             lists.extend(ls['value'])
         return lists
 
@@ -124,7 +125,7 @@ class Client(HttpClientBase):
         :param list_name: unique list name (case sensitive)
         :return: list object
         """
-        lists = self.get_site_lists(site_id)
+        lists = self.get_site_lists(site_id, f"displayName eq '{list_name}'")
         res_list = [ls for ls in lists if ls['displayName'] == list_name]
 
         return res_list[0] if res_list else None
