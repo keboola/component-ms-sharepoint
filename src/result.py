@@ -38,7 +38,7 @@ class ListDataResultWriter(ResultWriter):
 
     def __init__(self, result_dir_path, column_mapping, result_name):
         ResultWriter.__init__(self, result_dir_path,
-                              KBCTableDef(name=result_name + '_data', pk=['ID', 'list_id'], columns=[]),
+                              KBCTableDef(name=result_name + '_data', pk=['ID', 'list_id'], columns=[], destination=''),
                               fix_headers=True, flatten_objects=False)
         self.column_mapping = column_mapping
         # override column names with display name
