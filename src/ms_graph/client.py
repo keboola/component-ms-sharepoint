@@ -125,7 +125,7 @@ class Client(HttpClientBase):
         :return: list object
         """
         lists = self.get_site_lists(site_id)
-        res_list = [ls for ls in lists if ls['name'] == list_name]
+        res_list = [ls for ls in lists if ls['displayName'] == list_name]
 
         return res_list[0] if res_list else None
 
