@@ -19,7 +19,7 @@ class ListResultWriter(ResultWriter):
             "lastModifiedBy_user",
             "lastModifiedBy_email"
             ]
-    TABLE_DEF = KBCTableDef(name='lists_metadata', pk=['id', 'webUrl'], columns=COLS)
+    TABLE_DEF = KBCTableDef(name='lists_metadata', pk=['id', 'webUrl'], columns=COLS, destination='')
 
     def __init__(self, result_dir_path):
         ResultWriter.__init__(self, result_dir_path, self.TABLE_DEF, fix_headers=True,
