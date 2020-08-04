@@ -1,8 +1,9 @@
+import logging
+
 import requests
 from kbc.client_base import HttpClientBase
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-import logging
 
 from ms_graph import exceptions
 
@@ -109,11 +110,12 @@ class Client(HttpClientBase):
         resp = self._parse_response(self.get_raw(url), 'sites')
         return resp
 
-    def get_site_lists(self, site_id):
+    def get_site_lists(self, site_id, filter=''):
         endpoint = f'/sites/{site_id}/lists'
+
         lists = []
-        for l in self._get_paged_result_pages(endpoint, {}):
-            lists.extend(l['value'])
+        for ls in self._get_paged_result_pages(endpoint, {"$filter": filter}):
+            lists.extend(ls['value'])
         return lists
 
     def get_site_list_by_name(self, site_id, list_name):
@@ -123,13 +125,13 @@ class Client(HttpClientBase):
         :param list_name: unique list name (case sensitive)
         :return: list object
         """
-        lists = self.get_site_lists(site_id)
-        res_list = [l for l in lists if l['name'] == list_name]
+        lists = self.get_site_lists(site_id, f"displayName eq '{list_name}'")
+        res_list = [ls for ls in lists if ls['displayName'] == list_name]
 
         return res_list[0] if res_list else None
 
     def get_site_list_columns(self, site_id, list_id, include_system=False, use_display_colnames=True,
-                              expand_par='columns(select=name, description, displayName)'):
+                              expand_par='columns(select=name, description, displayName, personOrGroup)'):
         """
         Gets array of columns available in the specified list.
 
@@ -144,12 +146,17 @@ class Client(HttpClientBase):
         parameters = {'expand': expand_par}
 
         columns = []
-        for l in self._get_paged_result_pages(endpoint, parameters):
-            columns.extend(l['columns'])
+        for ls in self._get_paged_result_pages(endpoint, parameters):
+            columns.extend(ls['columns'])
 
         if not include_system:
             columns = [c for c in columns if
                        c['name'] not in self.SYSTEM_LIST_COLUMNS and not c['name'].startswith('_')]
+
+        # convert Person type to lookupIds
+        for col in columns:
+            if col.get('personOrGroup'):
+                col['name'] = col['name'] + 'LookupId'
 
         if use_display_colnames:
             logging.info('Using display column names.')

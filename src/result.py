@@ -19,7 +19,7 @@ class ListResultWriter(ResultWriter):
             "lastModifiedBy_user",
             "lastModifiedBy_email"
             ]
-    TABLE_DEF = KBCTableDef(name='lists_metadata', pk=['id', 'webUrl'], columns=COLS)
+    TABLE_DEF = KBCTableDef(name='lists_metadata', pk=['id', 'webUrl'], columns=COLS, destination='')
 
     def __init__(self, result_dir_path):
         ResultWriter.__init__(self, result_dir_path, self.TABLE_DEF, fix_headers=True,
@@ -38,7 +38,7 @@ class ListDataResultWriter(ResultWriter):
 
     def __init__(self, result_dir_path, column_mapping, result_name):
         ResultWriter.__init__(self, result_dir_path,
-                              KBCTableDef(name=result_name + '_data', pk=['ID', 'list_id'], columns=[]),
+                              KBCTableDef(name=result_name + '_data', pk=['ID', 'list_id'], columns=[], destination=''),
                               fix_headers=True, flatten_objects=False)
         self.column_mapping = column_mapping
         # override column names with display name
