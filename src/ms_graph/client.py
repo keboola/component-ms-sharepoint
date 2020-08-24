@@ -155,7 +155,7 @@ class Client(HttpClientBase):
 
         # convert Person type to lookupIds
         for col in columns:
-            if col.get('personOrGroup'):
+            if col.get('personOrGroup') and col['name'] != 'AssignedTo':
                 col['name'] = col['name'] + 'LookupId'
 
         if use_display_colnames:
