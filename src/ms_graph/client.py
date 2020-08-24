@@ -130,7 +130,7 @@ class Client(HttpClientBase):
 
         return res_list[0] if res_list else None
 
-    def get_site_list_columns(self, site_id, list_id, include_system=False, use_display_colnames=True,
+    def     get_site_list_columns(self, site_id, list_id, include_system=False, use_display_colnames=True,
                               expand_par='columns(select=name, description, displayName, personOrGroup)'):
         """
         Gets array of columns available in the specified list.

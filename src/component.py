@@ -117,7 +117,10 @@ class Component(KBCEnvHandler):
     def _collect_and_write_list(self, site_id, sh_lst, list_columns, lst_par):
         data_wr = ListDataResultWriter(self.tables_out_path, list_columns, lst_par[KEY_LIST_RESULT_NAME])
         for fl in self.client.get_site_list_fields(site_id, sh_lst['id']):
-            data_wr.write_all(fl, user_values={result.LIST_ID: sh_lst['id']})
+            for f in fl:
+                if isinstance(f, list):
+                    f = json.dumps(f)
+                data_wr.write(f, user_values={result.LIST_ID: sh_lst['id']})
         # write metadata
         self.list_metadata_wr.write(sh_lst, user_values={result.SITE_ID: site_id,
                                                          result.RES_TABLE_NAME: lst_par[KEY_LIST_RESULT_NAME]})
