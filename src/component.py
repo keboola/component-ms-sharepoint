@@ -5,7 +5,9 @@ Template Component main class.
 
 import json
 import logging
+import os
 import sys
+from pathlib import Path
 
 from kbc.env_handler import KBCEnvHandler
 
@@ -38,7 +40,11 @@ OAUTH_APP_SCOPE = 'offline_access Files.Read Sites.Read.All'
 class Component(KBCEnvHandler):
 
     def __init__(self, debug=False):
-        KBCEnvHandler.__init__(self, MANDATORY_PARS, log_level=logging.DEBUG if debug else logging.INFO)
+        # for easier local project setup
+        default_data_dir = Path(__file__).resolve().parent.parent.joinpath('data').as_posix() \
+            if not os.environ.get('KBC_DATADIR') else None
+        KBCEnvHandler.__init__(self, MANDATORY_PARS, log_level=logging.DEBUG if debug else logging.INFO,
+                               data_path=default_data_dir)
         # override debug from config
         if self.cfg_params.get(KEY_DEBUG):
             debug = True
