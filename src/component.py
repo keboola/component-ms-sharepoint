@@ -57,8 +57,8 @@ class Component(KBCEnvHandler):
             for ls in self.cfg_params[KEY_LISTS]:
                 self.validate_parameters(ls,
                                          [KEY_LIST_NAME, KEY_LIST_LOAD_SETUP], 'list')
-                self.validate_parameters(ls[KEY_LIST_LOAD_SETUP],
-                                         [KEY_LIST_LOAD_MODE, KEY_LIST_RESULT_NAME], 'list')
+                # self.validate_parameters(ls[KEY_LIST_LOAD_SETUP],
+                #                          [KEY_LIST_LOAD_MODE, KEY_LIST_RESULT_NAME], 'list')
                 # normalize config - structure used for UI
                 ls[KEY_LIST_LOAD_MODE] = ls[KEY_LIST_LOAD_SETUP][KEY_LIST_LOAD_MODE]
                 ls[KEY_LIST_RESULT_NAME] = ls[KEY_LIST_LOAD_SETUP][KEY_LIST_RESULT_NAME]
