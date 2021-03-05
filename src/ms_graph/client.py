@@ -94,6 +94,8 @@ class Client(HttpClientBase):
             if req_response.get('@odata.nextLink'):
                 has_more = True
                 next_url = req_response['@odata.nextLink']
+                # the next url has parameters, so empty the parameters dict
+                parameters = {}
             else:
                 has_more = False
 
