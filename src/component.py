@@ -81,24 +81,26 @@ class Component(KBCEnvHandler):
 
         refresh_tokens = []
 
-        refresh_tokens.append("fake1")
-        refresh_tokens.append("fake2")
-        previous_state = self.get_state_file()
-        refresh_token = previous_state.get("#refresh_token", None)
-        if refresh_token:
-            refresh_tokens.append(refresh_token)
+        # previous_state = self.get_state_file()
+        # refresh_token = previous_state.get("#refresh_token", None)
+        # if refresh_token:
+        #     refresh_tokens.append(refresh_token)
 
-        authorization_data = json.loads(self.get_authorization().get('#data'))
-        config_refresh_token = authorization_data.get('refresh_token')
-        refresh_tokens.append(authorization_data.get('refresh_token'))
-
-        if not config_refresh_token:
-            raise Exception('Missing access token in authorization data!')
+        # authorization_data = json.loads(self.get_authorization().get('#data'))
+        # config_refresh_token = authorization_data.get('refresh_token')
+        # refresh_tokens.append(authorization_data.get('refresh_token'))
+        #
+        # if not config_refresh_token:
+        #     raise Exception('Missing refresh token in authorization data!')
 
         app_key = self.get_authorization()['appKey']
         app_secret = self.get_authorization()['#appSecret']
 
         self.client = initialize_client(refresh_tokens, app_key, app_secret)
+
+        if not self.client:
+            raise Exception('Authentication failed, reauthorize in extractor configuration!')
+
         self.list_metadata_wr = ListResultWriter(self.tables_out_path)
 
         self.write_state_file({"#refresh_token": self.client.get_refresh_token()})
