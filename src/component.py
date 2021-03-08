@@ -69,7 +69,7 @@ class Component(KBCEnvHandler):
 
         previous_state = self.get_state_file()
         print(self.get_state_file())
-        refresh_token = previous_state.get("refresh_token", None)
+        refresh_token = previous_state.get("refresh_toke", None)
 
         if not refresh_token:
             authorization_data = json.loads(self.get_authorization().get('#data'))
@@ -80,7 +80,7 @@ class Component(KBCEnvHandler):
 
         self.client = Client(refresh_token=refresh_token, client_id=self.get_authorization()['appKey'],
                              client_secret=self.get_authorization()['#appSecret'], scope=OAUTH_APP_SCOPE)
-        self.write_state_file({"refresh_token": self.client.get_refresh_token()})
+        self.write_state_file({"refresh_toke": self.client.get_refresh_token()})
         print(self.get_state_file())
         self.list_metadata_wr = ListResultWriter(self.tables_out_path)
 
