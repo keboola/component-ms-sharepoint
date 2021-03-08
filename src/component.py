@@ -39,12 +39,14 @@ OAUTH_APP_SCOPE = 'offline_access Files.Read Sites.Read.All'
 
 def initialize_client(refresh_tokens, app_key, app_secret):
     for refresh_token in refresh_tokens:
+        print()
+        print(refresh_token)
         try:
             client = Client(refresh_token=refresh_token, client_id=app_key,
                             client_secret=app_secret, scope=OAUTH_APP_SCOPE)
             return client
-        except Exception as e:
-            logging.exception(e)
+        except Exception as exc:
+            logging.exception(exc)
             pass
     return None
 
@@ -79,8 +81,9 @@ class Component(KBCEnvHandler):
             logging.exception(e)
             exit(1)
 
-        refresh_tokens = ["fake"]
+        refresh_tokens = []
 
+        refresh_tokens.append("faek")
         previous_state = self.get_state_file()
         refresh_token = previous_state.get("#refresh_token", None)
         if refresh_token:
@@ -91,6 +94,7 @@ class Component(KBCEnvHandler):
         refresh_tokens.append(authorization_data.get('refresh_token'))
 
         if not config_refresh_token or refresh_token:
+            print(refresh_tokens)
             raise Exception('Missing access token in authorization data!')
 
         app_key = self.get_authorization()['appKey']
