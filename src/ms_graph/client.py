@@ -41,6 +41,9 @@ class Client(HttpClientBase):
         self._auth_header = {"Authorization": 'Bearer ' + access_token,
                              "Content-Type": "application/json"}
 
+    def get_refresh_token(self):
+        return self.__refresh_token
+
     def __response_hook(self, res, *args, **kwargs):
         # refresh token if expired
         if res.status_code == 401:

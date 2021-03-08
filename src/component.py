@@ -80,7 +80,7 @@ class Component(KBCEnvHandler):
 
         self.client = Client(refresh_token=refresh_token, client_id=self.get_authorization()['appKey'],
                              client_secret=self.get_authorization()['#appSecret'], scope=OAUTH_APP_SCOPE)
-        self.write_state_file({"refresh_token": self.client.__refresh_token})
+        self.write_state_file({"refresh_token": self.client.get_refresh_token()})
         print(self.get_state_file())
         self.list_metadata_wr = ListResultWriter(self.tables_out_path)
 
