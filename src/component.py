@@ -67,12 +67,19 @@ class Component(KBCEnvHandler):
             logging.exception(e)
             exit(1)
 
+        previous_state = self.get_state_file()
+        refresh_token = previous_state.get("refresh_token", " ")
+        print(refresh_token)
+
         authorization_data = json.loads(self.get_authorization().get('#data'))
-        token = authorization_data.get('refresh_token')
-        if not token:
+        refresh_token = authorization_data.get('refresh_token')
+        print(refresh_token)
+
+        self.write_state_file({"refresh_token": refresh_token})
+        if not refresh_token:
             raise Exception('Missing access token in authorization data!')
 
-        self.client = Client(refresh_token=token, client_id=self.get_authorization()['appKey'],
+        self.client = Client(refresh_token=refresh_token, client_id=self.get_authorization()['appKey'],
                              client_secret=self.get_authorization()['#appSecret'], scope=OAUTH_APP_SCOPE)
         self.list_metadata_wr = ListResultWriter(self.tables_out_path)
 
