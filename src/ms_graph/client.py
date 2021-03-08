@@ -37,7 +37,6 @@ class Client(HttpClientBase):
         self.__client_id = client_id
         self.__scope = scope
         access_token = self.refresh_token()
-
         # set auth header
         self._auth_header = {"Authorization": 'Bearer ' + access_token,
                              "Content-Type": "application/json"}
@@ -62,7 +61,11 @@ class Client(HttpClientBase):
                 "grant_type": "refresh_token",
                 "scope": self.__scope}
         r = requests.post(url=self.OAUTH_LOGIN_URL, data=data)
+        print()
+        print("Parsed")
         parsed = self._parse_response(r, 'login')
+        print(parsed)
+        print()
         return parsed['access_token']
 
     def requests_retry_session(self, session=None):
