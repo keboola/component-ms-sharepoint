@@ -62,7 +62,6 @@ class Client(HttpClientBase):
                 "scope": self.__scope}
         r = requests.post(url=self.OAUTH_LOGIN_URL, data=data)
         parsed = self._parse_response(r, 'login')
-        print(parsed)
         return parsed['access_token'], parsed['refresh_token']
 
     def requests_retry_session(self, session=None):
