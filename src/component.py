@@ -37,6 +37,18 @@ MANDATORY_IMAGE_PARS = []
 OAUTH_APP_SCOPE = 'offline_access Files.Read Sites.Read.All'
 
 
+def initialize_client(self, refresh_tokens, app_key, app_secret):
+    for refresh_token in refresh_tokens:
+        try:
+            client = Client(refresh_token=refresh_token, client_id=app_key,
+                            client_secret=app_secret, scope=OAUTH_APP_SCOPE)
+            return client
+        except Exception as e:
+            logging.exception(e)
+            pass
+    return None
+
+
 class Component(KBCEnvHandler):
 
     def __init__(self, debug=False):
@@ -67,23 +79,27 @@ class Component(KBCEnvHandler):
             logging.exception(e)
             exit(1)
 
+        refresh_tokens = []
+
         previous_state = self.get_state_file()
-        print(self.get_state_file())
-        refresh_token = previous_state.get("refresh_toke", None)
+        refresh_token = previous_state.get("#refresh_token", None)
+        if refresh_token:
+            refresh_tokens.append(refresh_token)
 
-        if not refresh_token:
-            authorization_data = json.loads(self.get_authorization().get('#data'))
-            refresh_token = authorization_data.get('refresh_token')
+        authorization_data = json.loads(self.get_authorization().get('#data'))
+        config_refresh_token = authorization_data.get('refresh_token')
+        refresh_tokens.append(authorization_data.get('refresh_token'))
 
-        if not refresh_token:
+        if not config_refresh_token or refresh_token:
             raise Exception('Missing access token in authorization data!')
 
-        self.client = Client(refresh_token=refresh_token, client_id=self.get_authorization()['appKey'],
-                             client_secret=self.get_authorization()['#appSecret'], scope=OAUTH_APP_SCOPE)
+        app_key = self.get_authorization()['appKey']
+        app_secret = self.get_authorization()['#appSecret']
+
+        self.client = initialize_client(refresh_tokens, app_key, app_secret)
         self.list_metadata_wr = ListResultWriter(self.tables_out_path)
 
-        self.write_state_file({"refresh_toke": self.client.get_refresh_token()})
-        print(self.get_state_file())
+        self.write_state_file({"#refresh_token": self.client.get_refresh_token()})
 
     def run(self):
         '''
