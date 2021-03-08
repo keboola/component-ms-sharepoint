@@ -39,14 +39,12 @@ OAUTH_APP_SCOPE = 'offline_access Files.Read Sites.Read.All'
 
 def initialize_client(refresh_tokens, app_key, app_secret):
     for refresh_token in refresh_tokens:
-        print()
-        print(refresh_token)
         try:
             client = Client(refresh_token=refresh_token, client_id=app_key,
                             client_secret=app_secret, scope=OAUTH_APP_SCOPE)
             return client
         except Exception as exc:
-            logging.exception(exc)
+            logging.exception(f"Refresh token failed, retrying connection with new refresh token. {exc}")
             pass
     return None
 
@@ -83,7 +81,8 @@ class Component(KBCEnvHandler):
 
         refresh_tokens = []
 
-        refresh_tokens.append("faek")
+        refresh_tokens.append("fake1")
+        refresh_tokens.append("fake2")
         previous_state = self.get_state_file()
         refresh_token = previous_state.get("#refresh_token", None)
         if refresh_token:
