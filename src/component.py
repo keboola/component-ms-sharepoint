@@ -37,7 +37,7 @@ MANDATORY_IMAGE_PARS = []
 OAUTH_APP_SCOPE = 'offline_access Files.Read Sites.Read.All'
 
 
-def initialize_client(self, refresh_tokens, app_key, app_secret):
+def initialize_client(refresh_tokens, app_key, app_secret):
     for refresh_token in refresh_tokens:
         try:
             client = Client(refresh_token=refresh_token, client_id=app_key,
