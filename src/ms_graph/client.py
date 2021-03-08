@@ -36,7 +36,7 @@ class Client(HttpClientBase):
         self.__clien_secret = client_secret
         self.__client_id = client_id
         self.__scope = scope
-        access_token = self.refresh_token()
+        access_token, self.__refresh_token = self.refresh_tokens()
         # set auth header
         self._auth_header = {"Authorization": 'Bearer ' + access_token,
                              "Content-Type": "application/json"}
@@ -44,29 +44,25 @@ class Client(HttpClientBase):
     def __response_hook(self, res, *args, **kwargs):
         # refresh token if expired
         if res.status_code == 401:
-            token = self.refresh_token()
+            access_token, refresh_token = self.refresh_tokens()
             # update auth header
-            self._auth_header = {"Authorization": 'Bearer ' + token,
+            self._auth_header = {"Authorization": 'Bearer ' + access_token,
                                  "Content-Type": "application/json"}
             # reset header
-            res.request.headers['Authorization'] = 'Bearer ' + token
+            res.request.headers['Authorization'] = 'Bearer ' + access_token
             s = requests.Session()
             # retry request
             return self.requests_retry_session(session=s).send(res.request)
 
-    def refresh_token(self):
+    def refresh_tokens(self):
         data = {"client_id": self.__client_id,
                 "client_secret": self.__clien_secret,
                 "refresh_token": self.__refresh_token,
                 "grant_type": "refresh_token",
                 "scope": self.__scope}
         r = requests.post(url=self.OAUTH_LOGIN_URL, data=data)
-        print()
-        print("Parsed")
         parsed = self._parse_response(r, 'login')
-        print(parsed)
-        print()
-        return parsed['access_token']
+        return parsed['access_token'], parsed['refresh_token']
 
     def requests_retry_session(self, session=None):
         session = session or requests.Session()
