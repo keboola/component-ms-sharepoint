@@ -93,8 +93,7 @@ class Component(KBCEnvHandler):
         config_refresh_token = authorization_data.get('refresh_token')
         refresh_tokens.append(authorization_data.get('refresh_token'))
 
-        if not config_refresh_token or refresh_token:
-            print(refresh_tokens)
+        if not config_refresh_token:
             raise Exception('Missing access token in authorization data!')
 
         app_key = self.get_authorization()['appKey']
