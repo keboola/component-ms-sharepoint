@@ -13,7 +13,7 @@ from kbc.env_handler import KBCEnvHandler
 
 import result
 from ms_graph.client import Client
-from ms_graph.exceptions import BaseError
+from ms_graph.exceptions import BaseError, BadRequest
 from result import ListDataResultWriter, ListResultWriter
 
 # global constants'
@@ -51,7 +51,7 @@ def _initialize_client(refresh_tokens, app_key, app_secret):
             client = Client(refresh_token=refresh_token, client_id=app_key,
                             client_secret=app_secret, scope=OAUTH_APP_SCOPE)
             return client
-        except Exception as exc:
+        except BadRequest as exc:
             logging.exception(f"Refresh token failed, retrying connection with new refresh token. {exc}")
             pass
     raise UserException('Authentication failed, reauthorize the extractor in extractor configuration!')
@@ -87,7 +87,7 @@ class Component(KBCEnvHandler):
             logging.exception(e)
             exit(1)
 
-        refresh_tokens = []
+        refresh_tokens = ["test"]
 
         previous_state = self.get_state_file()
         refresh_token = previous_state.get(STATE_REFRESH_TOKEN, None)
