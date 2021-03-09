@@ -87,7 +87,7 @@ class Component(KBCEnvHandler):
             logging.exception(e)
             exit(1)
 
-        refresh_tokens = ["test"]
+        refresh_tokens = []
 
         previous_state = self.get_state_file()
         refresh_token = previous_state.get(STATE_REFRESH_TOKEN, None)
