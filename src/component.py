@@ -89,17 +89,17 @@ class Component(KBCEnvHandler):
 
         refresh_tokens = []
 
-        previous_state = self.get_state_file()
-        refresh_token = previous_state.get(STATE_REFRESH_TOKEN, None)
-        if refresh_token:
-            refresh_tokens.append(refresh_token)
-
-        authorization_data = json.loads(self.get_authorization().get('#data'))
-        config_refresh_token = authorization_data.get(CONFIG_REFRESH_TOKEN)
-        refresh_tokens.append(config_refresh_token)
-
-        if not config_refresh_token:
-            raise UserException('Missing refresh token in authorization data!')
+        # previous_state = self.get_state_file()
+        # refresh_token = previous_state.get(STATE_REFRESH_TOKEN, None)
+        # if refresh_token:
+        #     refresh_tokens.append(refresh_token)
+        #
+        # authorization_data = json.loads(self.get_authorization().get('#data'))
+        # config_refresh_token = authorization_data.get(CONFIG_REFRESH_TOKEN)
+        # refresh_tokens.append(config_refresh_token)
+        #
+        # if not config_refresh_token:
+        #     raise UserException('Missing refresh token in authorization data!')
 
         app_key = self.get_authorization()[APP_KEY]
         app_secret = self.get_authorization()[APP_SECRET]
