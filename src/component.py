@@ -18,6 +18,10 @@ from result import ListDataResultWriter, ListResultWriter
 
 # global constants'
 # configuration variables
+APP_SECRET = '#appSecret'
+APP_KEY = 'appKey'
+CONFIG_REFRESH_TOKEN = 'refresh_token'
+STATE_REFRESH_TOKEN = "#refresh_token"
 KEY_API_TOKEN = '#api_token'
 KEY_BASE_HOST = 'base_host_name'
 KEY_LISTS = 'lists'
@@ -37,7 +41,11 @@ MANDATORY_IMAGE_PARS = []
 OAUTH_APP_SCOPE = 'offline_access Files.Read Sites.Read.All'
 
 
-def initialize_client(refresh_tokens, app_key, app_secret):
+class UserException(Exception):
+    pass
+
+
+def _initialize_client(refresh_tokens, app_key, app_secret):
     for refresh_token in refresh_tokens:
         try:
             client = Client(refresh_token=refresh_token, client_id=app_key,
@@ -46,7 +54,7 @@ def initialize_client(refresh_tokens, app_key, app_secret):
         except Exception as exc:
             logging.exception(f"Refresh token failed, retrying connection with new refresh token. {exc}")
             pass
-    return None
+    raise UserException('Authentication failed, reauthorize in extractor configuration!')
 
 
 class Component(KBCEnvHandler):
@@ -82,26 +90,23 @@ class Component(KBCEnvHandler):
         refresh_tokens = []
 
         previous_state = self.get_state_file()
-        refresh_token = previous_state.get("#refresh_token", None)
+        refresh_token = previous_state.get(STATE_REFRESH_TOKEN, None)
         if refresh_token:
             refresh_tokens.append(refresh_token)
 
         authorization_data = json.loads(self.get_authorization().get('#data'))
-        config_refresh_token = authorization_data.get('refresh_token')
-        refresh_tokens.append(authorization_data.get('refresh_token'))
+        config_refresh_token = authorization_data.get(CONFIG_REFRESH_TOKEN)
+        refresh_tokens.append(config_refresh_token)
 
         if not config_refresh_token:
-            raise Exception('Missing refresh token in authorization data!')
+            raise UserException('Missing refresh token in authorization data!')
 
-        app_key = self.get_authorization()['appKey']
-        app_secret = self.get_authorization()['#appSecret']
+        app_key = self.get_authorization()[APP_KEY]
+        app_secret = self.get_authorization()[APP_SECRET]
 
-        self.client = initialize_client(refresh_tokens, app_key, app_secret)
-        if not self.client:
-            raise Exception('Authentication failed, reauthorize in extractor configuration!')
-
+        self.client = _initialize_client(refresh_tokens, app_key, app_secret)
         self.list_metadata_wr = ListResultWriter(self.tables_out_path)
-        self.write_state_file({"#refresh_token": self.client.get_refresh_token()})
+        self.write_state_file({STATE_REFRESH_TOKEN: self.client.get_refresh_token()})
 
     def run(self):
         '''
