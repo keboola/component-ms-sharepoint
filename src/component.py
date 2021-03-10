@@ -13,11 +13,15 @@ from kbc.env_handler import KBCEnvHandler
 
 import result
 from ms_graph.client import Client
-from ms_graph.exceptions import BaseError
+from ms_graph.exceptions import BaseError, BadRequest
 from result import ListDataResultWriter, ListResultWriter
 
 # global constants'
 # configuration variables
+APP_SECRET = '#appSecret'
+APP_KEY = 'appKey'
+CONFIG_REFRESH_TOKEN = 'refresh_token'
+STATE_REFRESH_TOKEN = "#refresh_token"
 KEY_API_TOKEN = '#api_token'
 KEY_BASE_HOST = 'base_host_name'
 KEY_LISTS = 'lists'
@@ -35,6 +39,22 @@ MANDATORY_PARS = [KEY_BASE_HOST, KEY_LISTS]
 MANDATORY_IMAGE_PARS = []
 
 OAUTH_APP_SCOPE = 'offline_access Files.Read Sites.Read.All'
+
+
+class UserException(Exception):
+    pass
+
+
+def _initialize_client(refresh_tokens, app_key, app_secret):
+    for refresh_token in refresh_tokens:
+        try:
+            client = Client(refresh_token=refresh_token, client_id=app_key,
+                            client_secret=app_secret, scope=OAUTH_APP_SCOPE)
+            return client
+        except BadRequest as exc:
+            logging.exception(f"Refresh token failed, retrying connection with new refresh token. {exc}")
+            pass
+    raise UserException('Authentication failed, reauthorize the extractor in extractor configuration!')
 
 
 class Component(KBCEnvHandler):
@@ -67,14 +87,26 @@ class Component(KBCEnvHandler):
             logging.exception(e)
             exit(1)
 
-        authorization_data = json.loads(self.get_authorization().get('#data'))
-        token = authorization_data.get('refresh_token')
-        if not token:
-            raise Exception('Missing access token in authorization data!')
+        refresh_tokens = []
 
-        self.client = Client(refresh_token=token, client_id=self.get_authorization()['appKey'],
-                             client_secret=self.get_authorization()['#appSecret'], scope=OAUTH_APP_SCOPE)
+        previous_state = self.get_state_file()
+        refresh_token = previous_state.get(STATE_REFRESH_TOKEN)
+        if refresh_token:
+            refresh_tokens.append(refresh_token)
+
+        authorization_data = json.loads(self.get_authorization().get('#data'))
+        config_refresh_token = authorization_data.get(CONFIG_REFRESH_TOKEN)
+        refresh_tokens.append(config_refresh_token)
+
+        if not config_refresh_token:
+            raise UserException('Missing refresh token in authorization data!')
+
+        app_key = self.get_authorization()[APP_KEY]
+        app_secret = self.get_authorization()[APP_SECRET]
+
+        self.client = _initialize_client(refresh_tokens, app_key, app_secret)
         self.list_metadata_wr = ListResultWriter(self.tables_out_path)
+        self.write_state_file({STATE_REFRESH_TOKEN: self.client.refresh_token})
 
     def run(self):
         '''
