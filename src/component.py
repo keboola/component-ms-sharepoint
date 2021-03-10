@@ -90,7 +90,7 @@ class Component(KBCEnvHandler):
         refresh_tokens = []
 
         previous_state = self.get_state_file()
-        refresh_token = previous_state.get(STATE_REFRESH_TOKEN, None)
+        refresh_token = previous_state.get(STATE_REFRESH_TOKEN)
         if refresh_token:
             refresh_tokens.append(refresh_token)
 
@@ -106,7 +106,7 @@ class Component(KBCEnvHandler):
 
         self.client = _initialize_client(refresh_tokens, app_key, app_secret)
         self.list_metadata_wr = ListResultWriter(self.tables_out_path)
-        self.write_state_file({STATE_REFRESH_TOKEN: self.client.get_refresh_token()})
+        self.write_state_file({STATE_REFRESH_TOKEN: self.client.refresh_token})
 
     def run(self):
         '''

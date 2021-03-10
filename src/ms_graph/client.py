@@ -41,7 +41,8 @@ class Client(HttpClientBase):
         self._auth_header = {"Authorization": 'Bearer ' + access_token,
                              "Content-Type": "application/json"}
 
-    def get_refresh_token(self):
+    @property
+    def refresh_token(self):
         return self.__refresh_token
 
     def __response_hook(self, res, *args, **kwargs):
@@ -64,10 +65,7 @@ class Client(HttpClientBase):
                 "grant_type": "refresh_token",
                 "scope": self.__scope}
         r = requests.post(url=self.OAUTH_LOGIN_URL, data=data)
-        print(r)
-        print()
         parsed = self._parse_response(r, 'login')
-        print(parsed)
         return parsed['access_token'], parsed['refresh_token']
 
     def requests_retry_session(self, session=None):
