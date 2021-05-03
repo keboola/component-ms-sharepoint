@@ -113,7 +113,6 @@ class Component(KBCEnvHandler):
         Main execution code
         '''
         params = self.cfg_params  # noqa
-        all_results = []
         for lst_par in params[KEY_LISTS]:
             try:
                 logging.info(
@@ -145,7 +144,7 @@ class Component(KBCEnvHandler):
                 logging.exception(ex)
                 exit(1)
 
-        logging.info('Writing results')
+        logging.info('Writing metadata results')
         self.list_metadata_wr.close()
         metadata_tables = self.list_metadata_wr.collect_results()
 
