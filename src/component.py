@@ -140,16 +140,16 @@ class Component(KBCEnvHandler):
                                                                                                   True))
                 logging.info('Collecting list data...')
                 data_results = self._collect_and_write_list(site['id'], sh_list, list_columns, lst_par)
-                all_results.extend(data_results)
+                self.create_manifests(results=data_results, incremental=lst_par.get(KEY_LIST_LOAD_MODE, False))
             except BaseError as ex:
                 logging.exception(ex)
                 exit(1)
 
         logging.info('Writing results')
         self.list_metadata_wr.close()
-        all_results.extend(self.list_metadata_wr.collect_results())
+        metadata_tables = self.list_metadata_wr.collect_results()
 
-        self.create_manifests(results=all_results)
+        self.create_manifests(results=metadata_tables, incremental=True)
         logging.info('Extraction finished!')
 
     def _collect_and_write_list(self, site_id, sh_lst, list_columns, lst_par):
