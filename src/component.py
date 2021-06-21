@@ -155,6 +155,7 @@ class Component(KBCEnvHandler):
         data_wr = ListDataResultWriter(self.tables_out_path, list_columns, lst_par[KEY_LIST_RESULT_NAME])
         for fl in self.client.get_site_list_fields(site_id, sh_lst['id']):
             for f in fl:
+                logging.debug(f"List row: {f}")
                 if isinstance(f, list):
                     f = json.dumps(f)
                 data_wr.write(f, user_values={result.LIST_ID: sh_lst['id']})
