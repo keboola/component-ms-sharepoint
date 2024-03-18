@@ -22,6 +22,7 @@ APP_SECRET = '#appSecret'
 APP_KEY = 'appKey'
 CONFIG_REFRESH_TOKEN = 'refresh_token'
 STATE_REFRESH_TOKEN = "#refresh_token"
+STATE_AUTH_ID = "auth_id"
 KEY_API_TOKEN = '#api_token'
 KEY_BASE_HOST = 'base_host_name'
 KEY_LISTS = 'lists'
@@ -90,9 +91,16 @@ class Component(KBCEnvHandler):
         refresh_tokens = []
 
         previous_state = self.get_state_file()
-        refresh_token = previous_state.get(STATE_REFRESH_TOKEN)
-        if refresh_token:
+        refresh_token = previous_state.get(STATE_REFRESH_TOKEN, None)
+        statefile_auth_id = previous_state.get(STATE_AUTH_ID, None)
+
+        if not statefile_auth_id and refresh_token:  # TODO: remove after few weeks
             refresh_tokens.append(refresh_token)
+            logging.info("Refresh token loaded from state file")
+
+        if refresh_token and statefile_auth_id == self.get_authorization().get('id'):
+            refresh_tokens.append(refresh_token)
+            logging.info("Refresh token loaded from state file")
 
         authorization_data = json.loads(self.get_authorization().get('#data'))
         config_refresh_token = authorization_data.get(CONFIG_REFRESH_TOKEN)
@@ -106,7 +114,10 @@ class Component(KBCEnvHandler):
 
         self.client = _initialize_client(refresh_tokens, app_key, app_secret)
         self.list_metadata_wr = ListResultWriter(self.tables_out_path)
-        self.write_state_file({STATE_REFRESH_TOKEN: self.client.refresh_token})
+        self.write_state_file({
+            STATE_REFRESH_TOKEN: self.client.refresh_token,
+            STATE_AUTH_ID: self.get_authorization().get('id', None)
+            })
 
     def run(self):
         '''
