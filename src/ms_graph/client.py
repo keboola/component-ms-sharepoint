@@ -76,7 +76,7 @@ class Client(HttpClientBase):
             connect=self.max_retries,
             backoff_factor=self.backoff_factor,
             status_forcelist=self.status_forcelist,
-            method_whitelist=('GET', 'POST', 'PATCH', 'UPDATE')
+            allowed_methods=('GET', 'POST', 'PATCH', 'UPDATE')
         )
         adapter = HTTPAdapter(max_retries=retry)
         session.mount('http://', adapter)
@@ -121,6 +121,8 @@ class Client(HttpClientBase):
         lists = []
         for ls in self._get_paged_result_pages(endpoint, {"$filter": filter}):
             lists.extend(ls['value'])
+
+        logging.debug(f"Found lists: {lists}")
         return lists
 
     def get_site_list_by_name(self, site_id, list_name):
