@@ -12,6 +12,7 @@ class Client(HttpClientBase):
     OAUTH_LOGIN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
     MAX_RETRIES = 10
     BASE_URL = 'https://graph.microsoft.com/v1.0/'
+    BETA_BASE_URL = 'https://graph.microsoft.com/beta/'
     SYSTEM_LIST_COLUMNS = ["ComplianceAssetId",
                            "ContentType",
                            # "Modified",
@@ -141,7 +142,7 @@ class Client(HttpClientBase):
         :param site_id:
         Returns: site settings
         """
-        url = self.base_url + f'{site_id}/settings'
+        url = self.BETA_BASE_URL + f'{site_id}/settings'
         return self._parse_response(self.get_raw(url), 'sites')
 
     def get_site_list_columns(self, site_id, list_id, include_system=False, use_display_colnames=True,
