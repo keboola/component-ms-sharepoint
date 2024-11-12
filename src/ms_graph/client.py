@@ -141,8 +141,8 @@ class Client(HttpClientBase):
         :param site_id:
         Returns: site settings
         """
-        endpoint = f'/sites/{site_id}/settings'
-        return self._parse_response(self.get_raw(endpoint), endpoint)
+        url = self.base_url + f'/sites/{site_id}/settings'
+        return self._parse_response(self.get_raw(url), 'sites')
 
     def get_site_list_columns(self, site_id, list_id, include_system=False, use_display_colnames=True,
                               expand_par='columns(select=name, description, displayName, personOrGroup)'):
