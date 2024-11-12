@@ -120,6 +120,7 @@ class Component(KBCEnvHandler):
                     f'from the site: {params[KEY_BASE_HOST] + lst_par[KEY_LIST_SITE_REL_PATH]}')
                 logging.info('Validating site and list references...')
                 site = self.client.get_site_by_relative_url(params[KEY_BASE_HOST], lst_par[KEY_LIST_SITE_REL_PATH])
+                logging.debug(f'Site: {site}')
                 if not site.get('id'):
                     raise RuntimeError(
                         f'No site with given url: '
