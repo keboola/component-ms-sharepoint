@@ -146,7 +146,8 @@ class Client(HttpClientBase):
         return self._parse_response(self.get_raw(url), 'sites')
 
     def get_site_list_columns(self, site_id, list_id, include_system=False, use_display_colnames=True,
-                              expand_par='columns(select=name, description, displayName, personOrGroup, dateTime, type)'):
+                              expand_par='columns(select=name, description, displayName,'
+                                         ' personOrGroup, dateTime, type)'):
         """
         Gets array of columns available in the specified list.
 
