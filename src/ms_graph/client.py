@@ -157,8 +157,8 @@ class Client(HttpClientBase):
         :param expand_par:
         :return:
         """
-        endpoint = f'/sites/{site_id}/lists/{list_id}'
-        parameters = {'expand': expand_par}
+        endpoint = f'/sites/{site_id}/lists/{list_id}/columns'
+        parameters = {}#{'expand': expand_par}
 
         columns = []
         for ls in self._get_paged_result_pages(endpoint, parameters):
