@@ -6,9 +6,10 @@ RUN apt-get update && apt-get install -y build-essential
 
 RUN pip install flake8
 
+COPY . /code/
+
 RUN pip install -r /code/requirements.txt
 
-COPY . /code/
 
 WORKDIR /code/
 
