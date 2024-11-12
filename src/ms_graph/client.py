@@ -76,7 +76,7 @@ class Client(HttpClientBase):
             connect=self.max_retries,
             backoff_factor=self.backoff_factor,
             status_forcelist=self.status_forcelist,
-            method_whitelist=('GET', 'POST', 'PATCH', 'UPDATE')
+            allowed_methods=('GET', 'POST', 'PATCH', 'UPDATE')
         )
         adapter = HTTPAdapter(max_retries=retry)
         session.mount('http://', adapter)
