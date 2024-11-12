@@ -137,6 +137,7 @@ class Component(KBCEnvHandler):
                                                                                             False),
                                                                  use_display_colnames=lst_par.get(KEY_USE_DISPLAY_NAMES,
                                                                                                   True))
+                logging.debug(f'List columns: {list_columns}')
                 logging.info('Collecting list data...')
                 data_results = self._collect_and_write_list(site['id'], sh_list, list_columns, lst_par)
                 self.create_manifests(results=data_results, incremental=lst_par.get(KEY_LIST_LOAD_MODE, False))

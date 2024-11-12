@@ -154,6 +154,7 @@ class Client(HttpClientBase):
         for ls in self._get_paged_result_pages(endpoint, parameters):
             columns.extend(ls['columns'])
 
+        logging.debug(f'Columns: {columns}')
         if not include_system:
             columns = [c for c in columns if
                        c['name'] not in self.SYSTEM_LIST_COLUMNS and not c['name'].startswith('_')]
@@ -176,6 +177,7 @@ class Client(HttpClientBase):
         endpoint = f'/sites/{site_id}/lists/{list_id}/items'
         params = {'expand': 'fields'}
         for r in self._get_paged_result_pages(endpoint, params):
+            logging.debug(f'List raw items: {r}')
             yield [f['fields'] for f in r['value']]
 
     def _parse_response(self, response, endpoint):
