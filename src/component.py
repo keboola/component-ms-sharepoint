@@ -124,8 +124,10 @@ class Component(KBCEnvHandler):
                     raise RuntimeError(
                         f'No site with given url: '
                         f'{"/".join([params[KEY_BASE_HOST], lst_par[KEY_LIST_SITE_REL_PATH]])} found.')
-
+                site_settings = self.client.get_site_settings(site['id'])
+                logging.debug(f'Site settings: {site_settings}')
                 sh_list = self.client.get_site_list_by_name(site['id'], lst_par[KEY_LIST_NAME])
+                logging.debug(f'List detail: {sh_list}')
                 if not sh_list:
                     raise RuntimeError(
                         f'No list named "{lst_par[KEY_LIST_NAME]}" found on site : '

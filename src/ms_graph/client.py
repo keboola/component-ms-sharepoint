@@ -135,6 +135,15 @@ class Client(HttpClientBase):
 
         return res_list[0] if res_list else None
 
+    def get_site_settings(self, site_id):
+        """
+        Get site settings
+        :param site_id:
+        Returns: site settings
+        """
+        endpoint = f'/sites/{site_id}/settings'
+        return self._parse_response(self.get_raw(endpoint), endpoint)
+
     def get_site_list_columns(self, site_id, list_id, include_system=False, use_display_colnames=True,
                               expand_par='columns(select=name, description, displayName, personOrGroup)'):
         """
