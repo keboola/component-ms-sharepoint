@@ -162,6 +162,7 @@ class Client(HttpClientBase):
 
         columns = []
         for ls in self._get_paged_result_pages(endpoint, parameters):
+            logging.debug(f'List raw columns: {ls}')
             columns.extend(ls['columns'])
 
         logging.debug(f'Columns: {columns}')
