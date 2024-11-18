@@ -1,8 +1,3 @@
-'''
-Template Component main class.
-
-'''
-
 import json
 import logging
 import os
@@ -13,10 +8,9 @@ from pathlib import Path
 
 from kbc.env_handler import KBCEnvHandler
 
-import result
 from ms_graph.client import Client
 from ms_graph.exceptions import BaseError, BadRequest
-from result import ListDataResultWriter, ListResultWriter
+from result import ListDataResultWriter, ListResultWriter, LIST_ID, SITE_ID, RES_TABLE_NAME
 
 # global constants'
 # configuration variables
@@ -173,11 +167,11 @@ class Component(KBCEnvHandler):
                         row[item] = self._add_timezone_offset(row[item], site_time_zone_offset)
                 if isinstance(row, list):
                     row = json.dumps(row)
-                data_wr.write(row, user_values={result.LIST_ID: sh_lst['id']})
+                data_wr.write(row, user_values={LIST_ID: sh_lst['id']})
 
         # write metadata
-        self.list_metadata_wr.write(sh_lst, user_values={result.SITE_ID: site_id,
-                                                         result.RES_TABLE_NAME: lst_par[KEY_LIST_RESULT_NAME]})
+        self.list_metadata_wr.write(sh_lst, user_values={SITE_ID: site_id,
+                                                         RES_TABLE_NAME: lst_par[KEY_LIST_RESULT_NAME]})
 
         data_wr.close()
         return data_wr.collect_results()
