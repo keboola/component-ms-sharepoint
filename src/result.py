@@ -1,5 +1,7 @@
 from kbc.result import ResultWriter, KBCTableDef
 
+from src.component import UserException
+
 LIST_ID = 'list_id'
 SITE_ID = 'site_id'
 RES_TABLE_NAME = 'res_table_name'
@@ -62,6 +64,11 @@ class ListDataResultWriter(ResultWriter):
         for key in self.column_mapping:
             if key['name'] == 'ID':
                 # because MS bullshit
+                if 'id' in data:
+                    raise UserException(
+                        'Rename ID to id is not allowed, because of data contains id column already'
+                        ', please change the column name in the source data')
+
                 key['name'] = 'id'
 
             if data.get(key['name']):

@@ -6,7 +6,9 @@ Template Component main class.
 import json
 import logging
 import os
+import re
 import sys
+from datetime import timezone, timedelta, datetime
 from pathlib import Path
 
 from kbc.env_handler import KBCEnvHandler
@@ -125,8 +127,10 @@ class Component(KBCEnvHandler):
                     raise RuntimeError(
                         f'No site with given url: '
                         f'{"/".join([params[KEY_BASE_HOST], lst_par[KEY_LIST_SITE_REL_PATH]])} found.')
+
                 site_settings = self.client.get_site_settings(site['id'])
                 logging.debug(f'Site settings: {site_settings}')
+
                 sh_list = self.client.get_site_list_by_name(site['id'], lst_par[KEY_LIST_NAME])
                 logging.debug(f'List detail: {sh_list}')
                 if not sh_list:
@@ -142,7 +146,7 @@ class Component(KBCEnvHandler):
                                                                                                   True))
                 logging.debug(f'List columns: {list_columns}')
                 logging.info('Collecting list data...')
-                data_results = self._collect_and_write_list(site['id'], sh_list, list_columns, lst_par)
+                data_results = self._collect_and_write_list(site['id'], sh_list, list_columns, lst_par, site_settings)
                 self.create_manifests(results=data_results, incremental=lst_par.get(KEY_LIST_LOAD_MODE, False))
             except BaseError as ex:
                 logging.exception(ex)
@@ -155,20 +159,48 @@ class Component(KBCEnvHandler):
         self.create_manifests(results=metadata_tables, incremental=True)
         logging.info('Extraction finished!')
 
-    def _collect_and_write_list(self, site_id, sh_lst, list_columns, lst_par):
+    def _collect_and_write_list(self, site_id, sh_lst, list_columns, lst_par, site_settings=None):
         data_wr = ListDataResultWriter(self.tables_out_path, list_columns, lst_par[KEY_LIST_RESULT_NAME])
-        for fl in self.client.get_site_list_fields(site_id, sh_lst['id']):
-            for f in fl:
-                logging.debug(f"List row: {f}")
-                if isinstance(f, list):
-                    f = json.dumps(f)
-                data_wr.write(f, user_values={result.LIST_ID: sh_lst['id']})
+        site_time_zone_offset = self._recognize_timezone_offset(site_settings.get('timeZone'))
+        # write data
+        for fields_list in self.client.get_site_list_fields(site_id, sh_lst['id']):
+            for row in fields_list:
+                logging.debug(f"Items in a row: {row}")
+                # if list_columns contains key datetime add timezone to data values
+                items_with_datetime = [col.get('name') for col in list_columns if 'dateTime' in col]
+                for item in items_with_datetime:
+                    if row.get(item):
+                        row[item] = self._add_timezone_offset(row[item], site_time_zone_offset)
+                if isinstance(row, list):
+                    row = json.dumps(row)
+                data_wr.write(row, user_values={result.LIST_ID: sh_lst['id']})
+
         # write metadata
         self.list_metadata_wr.write(sh_lst, user_values={result.SITE_ID: site_id,
                                                          result.RES_TABLE_NAME: lst_par[KEY_LIST_RESULT_NAME]})
 
         data_wr.close()
         return data_wr.collect_results()
+
+    @staticmethod
+    def _recognize_timezone_offset(timezone_str):
+        offset_match = re.search(r"\(UTC([+-]\d{2}):(\d{2})\)", timezone_str)
+        if offset_match:
+            hours_offset = int(offset_match.group(1))
+            minutes_offset = int(offset_match.group(2))
+            return timezone(timedelta(hours=hours_offset, minutes=minutes_offset))
+        else:
+            logging.warning(f"Timezone '{timezone_str}' not recognized")
+
+    @staticmethod
+    def _add_timezone_offset(datetime_str, tz_offset):
+        try:
+            utc_date = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+            localized_date = utc_date.astimezone(tz_offset)
+            return localized_date.isoformat()
+        except ValueError:
+            logging.warning(f"Adding timezone offset was not successfully - '{datetime_str}'")
+            return datetime_str
 
 
 """
