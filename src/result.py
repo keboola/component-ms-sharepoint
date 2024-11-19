@@ -62,8 +62,7 @@ class ListDataResultWriter(ResultWriter):
         for key in self.column_mapping:
             if key['name'] == 'ID':
                 # because MS bullshit
-                if 'id' not in data:
-                    key['name'] = 'id'
+                key['name'] = 'id'
 
             if data.get(key['name']):
                 data[key['displayName']] = data.pop(key['name'])
