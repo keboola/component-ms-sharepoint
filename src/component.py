@@ -37,6 +37,7 @@ KEY_LIST_RESULT_NAME = 'result_table_name'
 KEY_DEBUG = 'debug'
 MANDATORY_PARS = [KEY_BASE_HOST, KEY_LISTS]
 MANDATORY_IMAGE_PARS = []
+IMAGE_PAR_AUTHORITY_URL = 'oneDriveAuthorityUrl'
 
 OAUTH_APP_SCOPE = 'offline_access Files.Read Sites.Read.All'
 
@@ -45,11 +46,11 @@ class UserException(Exception):
     pass
 
 
-def _initialize_client(refresh_tokens, app_key, app_secret):
+def _initialize_client(refresh_tokens, app_key, app_secret, authority_url=None):
     for refresh_token in refresh_tokens:
         try:
             client = Client(refresh_token=refresh_token, client_id=app_key,
-                            client_secret=app_secret, scope=OAUTH_APP_SCOPE)
+                            client_secret=app_secret, scope=OAUTH_APP_SCOPE, authority_url=authority_url)
             return client
         except BadRequest as exc:
             logging.exception(f"Refresh token failed, retrying connection with new refresh token. {exc}")
@@ -104,7 +105,8 @@ class Component(KBCEnvHandler):
         app_key = self.get_authorization()[APP_KEY]
         app_secret = self.get_authorization()[APP_SECRET]
 
-        self.client = _initialize_client(refresh_tokens, app_key, app_secret)
+        authority_url = self.image_params.get(IMAGE_PAR_AUTHORITY_URL)
+        self.client = _initialize_client(refresh_tokens, app_key, app_secret, authority_url)
         self.list_metadata_wr = ListResultWriter(self.tables_out_path)
         self.write_state_file({STATE_REFRESH_TOKEN: self.client.refresh_token})
 
