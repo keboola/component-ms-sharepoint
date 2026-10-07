@@ -9,7 +9,9 @@ from ms_graph import exceptions
 
 
 class Client(HttpClientBase):
-    OAUTH_LOGIN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
+    DEFAULT_AUTHORITY_URL = 'https://login.microsoftonline.com/common'
+    TOKEN_ENDPOINT = '/oauth2/v2.0/token'
+    OAUTH_LOGIN_URL = DEFAULT_AUTHORITY_URL + TOKEN_ENDPOINT
     MAX_RETRIES = 10
     BASE_URL = 'https://graph.microsoft.com/v1.0/'
     SYSTEM_LIST_COLUMNS = ["ComplianceAssetId",
@@ -28,7 +30,7 @@ class Client(HttpClientBase):
                            "AppAuthor",
                            "AppEditor"]
 
-    def __init__(self, refresh_token, client_secret, client_id, scope):
+    def __init__(self, refresh_token, client_secret, client_id, scope, authority_url=None):
         HttpClientBase.__init__(self, base_url=self.BASE_URL, max_retries=self.MAX_RETRIES, backoff_factor=0.3,
                                 status_forcelist=(429, 503, 500, 502, 504))
         # refresh always on init
@@ -36,10 +38,28 @@ class Client(HttpClientBase):
         self.__clien_secret = client_secret
         self.__client_id = client_id
         self.__scope = scope
+        self.oauth_login_url = self.build_token_url(authority_url)
         access_token, self.__refresh_token = self.request_tokens()
         # set auth header
         self._auth_header = {"Authorization": 'Bearer ' + access_token,
                              "Content-Type": "application/json"}
+
+    @classmethod
+    def build_token_url(cls, authority_url=None):
+        """Builds the Microsoft identity platform token endpoint.
+
+        authority_url is the optional per stack override
+        (image_parameters.oneDriveAuthorityUrl), for example
+        https://login.microsoftonline.com/<tenant-id>. Microsoft rejects the shared
+        /common endpoint for single tenant app registrations (AADSTS50194), so a
+        stack with such a registration must call its own tenant instead.
+
+        When the override is not set, the default /common endpoint is used and the
+        behaviour is unchanged.
+        """
+        if not authority_url:
+            return cls.OAUTH_LOGIN_URL
+        return authority_url.rstrip('/') + cls.TOKEN_ENDPOINT
 
     @property
     def refresh_token(self):
@@ -64,7 +84,7 @@ class Client(HttpClientBase):
                 "refresh_token": self.__refresh_token,
                 "grant_type": "refresh_token",
                 "scope": self.__scope}
-        r = requests.post(url=self.OAUTH_LOGIN_URL, data=data)
+        r = requests.post(url=self.oauth_login_url, data=data)
         parsed = self._parse_response(r, 'login')
         return parsed['access_token'], parsed['refresh_token']
 
