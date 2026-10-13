@@ -2,3 +2,6 @@ https://bitbucket.org/kds_consulting_team/keboola-python-util-lib/get/0.3.0.zip#
 mock
 freezegun
 deprecated
+# urllib3 2.x requires OpenSSL 1.1.1+, which the python:3.7 base image does not have.
+# Without this pin "import requests" fails and the component cannot start.
+urllib3<2
